@@ -1,23 +1,6 @@
 import 'package:flutter/material.dart';
-import 'pages/home_pages.dart';
+import 'pengayaan/modul_06/modul_06_pengayaan_app.dart';
 
 void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Kantin Kampus',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      home: const HomePages(),
-    );
-  }
+  runApp(const Modul06PengayaanApp());
 }
