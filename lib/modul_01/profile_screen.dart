@@ -45,7 +45,7 @@ class ProfileScreen extends StatelessWidget {
       const _ProfileInfoRow(
         icon: Icons.code_rounded,
         label: 'Program Studi',
-        value: 'Sarjana Terapan TRPL',
+        value: 'D4 Teknologi Rekayasa Prengkat Lunak',
       ),
       const _ProfileInfoRow(
         icon: Icons.location_on_rounded,
@@ -55,7 +55,7 @@ class ProfileScreen extends StatelessWidget {
       const _ProfileInfoRow(
         icon: Icons.calendar_today_rounded,
         label: 'Semester / TA',
-        value: 'Semester 5 (2026/2027)',
+        value: 'Semester 3 (2026/2027)',
       ),
       // Tantangan 2: null-aware `??` agar UI tidak crash bila data kosong.
       _ProfileInfoRow(
