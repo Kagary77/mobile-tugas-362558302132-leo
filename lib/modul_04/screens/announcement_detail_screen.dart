@@ -1,112 +1,66 @@
 import 'package:flutter/material.dart';
+
 import '../models/announcement.dart';
 
 class AnnouncementDetailScreen extends StatelessWidget {
-  final Announcement announcement;
-
   const AnnouncementDetailScreen({super.key, required this.announcement});
+
+  final Announcement announcement;
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('Detail Pengumuman'),
-        backgroundColor: const Color(0xFF0284C7),
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text('Detail Pengumuman')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Kategori dan tanggal
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0F2FE),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    announcement.category,
-                    style: const TextStyle(
-                      color: Color(0xFF0284C7),
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+          children: <Widget>[
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: <Widget>[
+                Chip(
+                  avatar: const Icon(Icons.label_outline, size: 16),
+                  label: Text(announcement.category),
                 ),
-                Row(
-                  children: [
-                    const Icon(Icons.calendar_today,
-                        size: 14, color: Color(0xFF64748B)),
-                    const SizedBox(width: 6),
-                    Text(
-                      announcement.date,
-                      style: const TextStyle(
-                          color: Color(0xFF64748B), fontSize: 13),
-                    ),
-                  ],
+                Chip(
+                  avatar: const Icon(Icons.event_outlined, size: 16),
+                  label: Text(announcement.date),
                 ),
               ],
-            ),
-            const SizedBox(height: 16),
-
-            // Judul
-            Text(
-              announcement.title,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
-                height: 1.3,
-              ),
             ),
             const SizedBox(height: 12),
-
-            // Penulis & info baca
+            Text(
+              announcement.title,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
             Row(
-              children: [
-                const CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Color(0xFFE0F2FE),
-                  child: Icon(Icons.person, size: 18, color: Color(0xFF0284C7)),
+              children: <Widget>[
+                Icon(
+                  Icons.person_outline,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      announcement.author,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    Text(
-                      'Dibaca ${announcement.readCount} kali',
-                      style: const TextStyle(
-                          fontSize: 11, color: Color(0xFF94A3B8)),
-                    ),
-                  ],
-                ),
+                const SizedBox(width: 6),
+                Expanded(child: Text(announcement.author)),
+                const Icon(Icons.visibility_outlined, size: 16),
+                const SizedBox(width: 4),
+                Text('${announcement.readCount} dibaca'),
               ],
             ),
-            const Divider(height: 32, color: Color(0xFFE2E8F0)),
-
-            // Konten pengumuman
-            Text(
-              announcement.content,
-              style: const TextStyle(
-                fontSize: 15,
-                color: Color(0xFF334155),
-                height: 1.7,
-              ),
+            const Divider(height: 32),
+            Text(announcement.content, style: theme.textTheme.bodyLarge),
+            const SizedBox(height: 32),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('Kembali ke Daftar'),
             ),
           ],
         ),

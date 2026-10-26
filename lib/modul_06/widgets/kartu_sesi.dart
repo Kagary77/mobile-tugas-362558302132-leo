@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/sesi_pengguna.dart';
 
 class KartuSesi extends StatelessWidget {
@@ -32,7 +33,7 @@ class KartuSesi extends StatelessWidget {
   static String _titik(int jumlah) =>
       List<String>.filled(jumlah, '\u2022').join();
 
-  /// Mengubah `2026-09-21T10:15:00.000` menjadi `21 Sep 2026, 10:15`.
+  /// `2026-09-21T10:15:00.000` → `21 Sep 2026, 10:15`.
   static String formatWaktu(String iso) {
     const List<String> bulan = <String>[
       'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
@@ -42,11 +43,10 @@ class KartuSesi extends StatelessWidget {
     if (waktu == null) return 'tidak diketahui';
     final String jam = waktu.hour.toString().padLeft(2, '0');
     final String menit = waktu.minute.toString().padLeft(2, '0');
-    return '${waktu.day} ${bulan[waktu.month - 1]} ${waktu.year}, '
-        '$jam:$menit';
+    return '${waktu.day} ${bulan[waktu.month - 1]} ${waktu.year}, $jam:$menit';
   }
 
-  /// Mengubah Duration menjadi `1 jam 5 menit` / `45 detik`.
+  /// Duration → `1 jam 5 menit` / `45 detik`.
   static String formatSisa(Duration sisa) {
     if (sisa.inSeconds <= 0) return 'sudah berakhir';
     if (sisa.inMinutes < 1) return '${sisa.inSeconds} detik';
@@ -57,52 +57,78 @@ class KartuSesi extends StatelessWidget {
         : '${sisa.inHours} jam $menit menit';
   }
 
-  // build() menampilkan nama, email, peran (labelPeran), waktu masuk
-  // (formatWaktu), sisa waktu (formatSisa), token tersamar, dan
-  // tombol Keluar yang memanggil onKeluar.
   @override
   Widget build(BuildContext context) {
-    final String token =
-        tampilkanToken ? sesi.token : samarkanToken(sesi.token);
+    final ColorScheme warna = Theme.of(context).colorScheme;
+    final Duration sisa = sesi.sisaWaktu(sekarang);
 
     return Card(
-      margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Row(
               children: <Widget>[
-                const CircleAvatar(child: Icon(Icons.person_rounded)),
-                const SizedBox(width: 12),
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: warna.primaryContainer,
+                  foregroundColor: warna.onPrimaryContainer,
+                  child: const Icon(Icons.person_rounded),
+                ),
+                const SizedBox(width: 14),
                 Expanded(
-                  child: Text(
-                    sesi.nama,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        sesi.nama,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        sesi.email,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: warna.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const Divider(height: 24),
-            _Baris(label: 'Email', nilai: sesi.email),
-            _Baris(
+            const Divider(height: 28),
+            _BarisInfo(
+              ikon: Icons.badge_outlined,
               label: 'Peran',
               nilai: SesiPengguna.labelPeran(sesi.peran),
             ),
-            _Baris(label: 'Masuk pada', nilai: formatWaktu(sesi.masukPada)),
-            _Baris(
-              label: 'Sisa waktu',
-              nilai: formatSisa(sesi.sisaWaktu(sekarang)),
+            _BarisInfo(
+              ikon: Icons.login_rounded,
+              label: 'Masuk pada',
+              nilai: formatWaktu(sesi.masukPada),
             ),
-            _Baris(label: 'Token', nilai: token),
-            const SizedBox(height: 12),
+            _BarisInfo(
+              ikon: Icons.timer_outlined,
+              label: 'Sisa masa berlaku',
+              nilai: formatSisa(sisa),
+            ),
+            _BarisInfo(
+              ikon: Icons.key_outlined,
+              label: 'Token',
+              nilai: tampilkanToken ? sesi.token : samarkanToken(sesi.token),
+            ),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              child: FilledButton.tonalIcon(
+              child: OutlinedButton.icon(
                 onPressed: sedangKeluar ? null : onKeluar,
                 icon: sedangKeluar
                     ? const SizedBox(
@@ -111,7 +137,7 @@ class KartuSesi extends StatelessWidget {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.logout_rounded),
-                label: const Text('Keluar'),
+                label: Text(sedangKeluar ? 'Keluar…' : 'Keluar'),
               ),
             ),
           ],
@@ -121,28 +147,40 @@ class KartuSesi extends StatelessWidget {
   }
 }
 
-class _Baris extends StatelessWidget {
+class _BarisInfo extends StatelessWidget {
+  const _BarisInfo({
+    required this.ikon,
+    required this.label,
+    required this.nilai,
+  });
+
+  final IconData ikon;
   final String label;
   final String nilai;
-  const _Baris({required this.label, required this.nilai});
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme warna = Theme.of(context).colorScheme;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          SizedBox(
-            width: 100,
+          Icon(ikon, size: 18, color: warna.primary),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: TextStyle(fontSize: 12, color: warna.onSurfaceVariant),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
             child: Text(
-              label,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+              nilai,
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
           ),
-          Expanded(child: Text(nilai)),
         ],
       ),
     );

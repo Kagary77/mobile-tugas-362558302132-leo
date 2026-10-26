@@ -6,6 +6,7 @@ class Course {
   final int sks;
   final double progress; // progres silabus (0.0 - 1.0)
   final String room;
+  final String category; // 'Teori' atau 'Praktikum' (Tantangan 1)
 
   const Course({
     required this.code,
@@ -14,9 +15,10 @@ class Course {
     required this.sks,
     required this.progress,
     this.room = 'Lab Komputer 3',
+    this.category = 'Teori',
   });
 
-  // Data dummy untuk bahan praktikum & testing
+  // Data dummy: total 12 SKS (4 + 3 + 3 + 2).
   static List<Course> getSampleCourses() {
     return const [
       Course(
@@ -26,6 +28,7 @@ class Course {
         sks: 4,
         progress: 0.25,
         room: 'Lab Komputer 3',
+        category: 'Praktikum',
       ),
       Course(
         code: 'TRPL502',
@@ -34,6 +37,7 @@ class Course {
         sks: 3,
         progress: 0.40,
         room: 'Ruang Teori 201',
+        category: 'Teori',
       ),
       Course(
         code: 'TRPL503',
@@ -42,6 +46,7 @@ class Course {
         sks: 3,
         progress: 0.60,
         room: 'Ruang Teori 104',
+        category: 'Teori',
       ),
       Course(
         code: 'TRPL504',
@@ -50,6 +55,7 @@ class Course {
         sks: 2,
         progress: 0.15,
         room: 'Lab Jaringan',
+        category: 'Praktikum',
       ),
     ];
   }

@@ -4,15 +4,23 @@ import 'package:flutter/material.dart';
 class HeaderBanner extends StatelessWidget {
   final String studentName;
   final String nim;
+  final int jumlahMatkul;
+  final int totalSks; // Tantangan 3
+  final int batasSks;
 
   const HeaderBanner({
     super.key,
     this.studentName = 'Mahasiswa TRPL',
     this.nim = '362355401xxx',
+    this.jumlahMatkul = 0,
+    this.totalSks = 0,
+    this.batasSks = 24,
   });
 
   @override
   Widget build(BuildContext context) {
+    final bool melebihiBatas = totalSks > batasSks;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -34,9 +42,8 @@ class HeaderBanner extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 padding:
@@ -48,13 +55,17 @@ class HeaderBanner extends StatelessWidget {
                 child: const Text(
                   'Semester 5 (2026/2027)',
                   style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600),
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              const Icon(Icons.notifications_active_outlined,
-                  color: Colors.white, size: 20),
+              const Icon(
+                Icons.notifications_active_outlined,
+                color: Colors.white,
+                size: 20,
+              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -66,26 +77,59 @@ class HeaderBanner extends StatelessWidget {
           const Text(
             'Dashboard Akademik & Proyek',
             style: TextStyle(
-                color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 16),
-          // Ringkasan status akademik
-          const Wrap(
+          // Wrap mencegah overflow pada layar sempit atau font besar.
+          Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              _StatPill(icon: Icons.task_alt, label: '4 Matakuliah'),
-              _StatPill(icon: Icons.grade, label: 'IPK 3.85'),
-              _StatPill(icon: Icons.calendar_month, label: '100% Hadir'),
+              _StatPill(icon: Icons.task_alt, label: '$jumlahMatkul Matakuliah'),
+              _StatPill(icon: Icons.workspace_premium, label: '$totalSks SKS'),
+              const _StatPill(icon: Icons.grade, label: 'IPK 3.85'),
+              const _StatPill(icon: Icons.calendar_month, label: '100% Hadir'),
             ],
           ),
+          // Tantangan 3: peringatan bila total SKS > batas.
+          if (melebihiBatas) ...[
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFDC2626),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.white),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Peringatan: Total SKS melebihi batas maksimal 24 SKS per semester!',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
-// Widget kecil untuk menampilkan pill status (ikon + label)
+// Pill status kecil (ikon + label)
 class _StatPill extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -105,11 +149,14 @@ class _StatPill extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: Colors.white),
           const SizedBox(width: 4),
-          Text(label,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );

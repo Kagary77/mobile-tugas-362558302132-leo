@@ -10,7 +10,7 @@ class Modul06App extends StatefulWidget {
   final SesiMemori? sesiMemori;
 
   /// `--dart-define=LAMBAT=true` → API tiruan lambat 2 detik, supaya
-  /// keadaan "sedang memproses" dapat diamati dengan tenang.
+  /// keadaan "sedang memproses" dapat diamati.
   static const bool lambatSimulasi = bool.fromEnvironment('LAMBAT');
 
   const Modul06App({super.key, this.api, this.sesiMemori});
@@ -20,8 +20,8 @@ class Modul06App extends StatefulWidget {
 }
 
 class _Modul06AppState extends State<Modul06App> {
-  // `late final` = dihitung sekali, saat pertama dipakai, lalu tidak
-  // berubah. Inilah yang membuat sesi bertahan selama aplikasi hidup.
+  // `late final`: dibuat sekali, lalu tidak berubah. Inilah yang membuat sesi
+  // bertahan selama aplikasi hidup. Jangan buat SesiMemori() di dalam build().
   late final SesiMemori _sesiMemori = widget.sesiMemori ?? SesiMemori();
 
   late final AuthApi _api = widget.api ??
@@ -35,8 +35,7 @@ class _Modul06AppState extends State<Modul06App> {
       debugShowCheckedModeBanner: false,
       title: 'Modul 06 — Login & Session Dasar',
       theme: ThemeData(
-        colorScheme:
-            ColorScheme.fromSeed(seedColor: const Color(0xFF0284C7)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0284C7)),
         useMaterial3: true,
       ),
       home: LoginScreen(api: _api, sesiMemori: _sesiMemori),

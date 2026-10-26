@@ -4,7 +4,9 @@ import '../models/sesi_pengguna.dart';
 class AuthException implements Exception {
   final String pesan;
   final int kode;
+
   const AuthException(this.pesan, {this.kode = 401});
+
   @override
   String toString() => 'AuthException($kode): $pesan';
 }
@@ -53,15 +55,14 @@ class AuthApi {
     }
 
     if (emailBersih != emailDemo || sandi != sandiDemo) {
-      // Pesan ini SENGAJA tidak menyebut mana yang salah — menyebut
-      // "email tidak terdaftar" akan membocorkan daftar pengguna.
+      // Pesan SENGAJA tidak menyebut mana yang salah — menyebut "email tidak
+      // terdaftar" akan membocorkan daftar pengguna.
       throw const AuthException('Email atau kata sandi salah.');
     }
 
     final DateTime mulai = DateTime.now();
     return SesiPengguna(
-      // Token tiruan: bentuknya menyerupai token sungguhan, tetapi tidak
-      // dapat dipakai ke sistem mana pun.
+      // Token tiruan: tidak dapat dipakai ke sistem mana pun.
       token: 'dummy.${mulai.millisecondsSinceEpoch}.trpl',
       email: emailBersih,
       nama: _namaUntuk(emailBersih),
@@ -71,8 +72,7 @@ class AuthApi {
     );
   }
 
-  /// Memperbarui masa berlaku sesi — meniru "refresh token".
-  /// Dipakai Fase B; token tetap sama karena tidak ada server sungguhan.
+  /// Memperbarui masa berlaku sesi (dipakai Fase B).
   Future<SesiPengguna> perbaruiSesi(
     SesiPengguna sesi, {
     Duration masaBerlaku = const Duration(hours: 2),

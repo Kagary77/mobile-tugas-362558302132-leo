@@ -21,8 +21,7 @@ class FieldKataSandi extends StatefulWidget {
 }
 
 class _FieldKataSandiState extends State<FieldKataSandi> {
-  // Visibilitas adalah keadaan tampilan, bukan keadaan data —
-  // karena itu ia boleh hidup di sini.
+  // Visibilitas adalah keadaan tampilan, jadi boleh hidup di sini.
   bool _terlihat = false;
 
   @override
@@ -42,8 +41,7 @@ class _FieldKataSandiState extends State<FieldKataSandi> {
         prefixIcon: const Icon(Icons.lock_outline_rounded),
         border: const OutlineInputBorder(),
         suffixIcon: IconButton(
-          tooltip:
-              _terlihat ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi',
+          tooltip: _terlihat ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi',
           icon: Icon(
             _terlihat
                 ? Icons.visibility_off_outlined

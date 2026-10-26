@@ -1,136 +1,201 @@
 import 'package:flutter/material.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+const Color _warnaUtama = Color(0xFF0284C7); // ganti untuk Tantangan 1
+const Color _warnaTeks = Color(0xFF0F172A);
+
+class PoliwangiProfileApp extends StatelessWidget {
+  const PoliwangiProfileApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Profil Mahasiswa TRPL',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: _warnaUtama),
+        useMaterial3: true,
+      ),
+      home: const ProfileScreen(),
+    );
+  }
+}
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({
+    super.key,
+    this.nama = 'Leonard Al Afgany',
+    this.nim = '362558302132',
+    this.githubUsername = 'https://github.com/Kagary77',
+    this.fokusKeahlian = 'Fullstack',
+  });
+
+  final String nama;
+  final String nim;
+  final String? githubUsername;
+  final String? fokusKeahlian;
+
+  @override
+  Widget build(BuildContext context) {
+    final List<_ProfileInfoRow> daftarInfo = <_ProfileInfoRow>[
+      const _ProfileInfoRow(
+        icon: Icons.business_rounded,
+        label: 'Jurusan',
+        value: 'Bisnis dan Informatika',
+      ),
+      const _ProfileInfoRow(
+        icon: Icons.code_rounded,
+        label: 'Program Studi',
+        value: 'Sarjana Terapan TRPL',
+      ),
+      const _ProfileInfoRow(
+        icon: Icons.location_on_rounded,
+        label: 'Kampus',
+        value: 'Politeknik Negeri Banyuwangi',
+      ),
+      const _ProfileInfoRow(
+        icon: Icons.calendar_today_rounded,
+        label: 'Semester / TA',
+        value: 'Semester 5 (2026/2027)',
+      ),
+      // Tantangan 2: null-aware `??` agar UI tidak crash bila data kosong.
+      _ProfileInfoRow(
+        icon: Icons.link_rounded,
+        label: 'Repositori GitHub',
+        value: githubUsername ?? '(belum diatur)',
+      ),
+      _ProfileInfoRow(
+        icon: Icons.star_rounded,
+        label: 'Fokus Keahlian',
+        value: fokusKeahlian ?? '(belum diatur)',
+      ),
+    ];
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text(
-          'Profil Mahasiswa TRPL',
+          'Profil Mahasiswa',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF0284C7),
+        backgroundColor: _warnaUtama,
         foregroundColor: Colors.white,
         centerTitle: true,
       ),
       body: Center(
-        // ScrollView dipakai agar UI tetap aman saat keyboard muncul atau layar landscape
+        // ScrollView: aman di landscape / layar kecil.
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Avatar profil
-              Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0F2FE),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFF0284C7),
-                    width: 3,
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Avatar
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0F2FE),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _warnaUtama, width: 3),
+                  ),
+                  child: const Icon(
+                    Icons.school_rounded,
+                    size: 52,
+                    color: _warnaUtama,
                   ),
                 ),
-                child: const Icon(
-                  Icons.school_rounded,
-                  size: 52,
-                  color: Color(0xFF0284C7),
-                ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // TODO: Ganti dengan nama lengkap dan NIM Anda
-              const Text(
-                'Nama Lengkap Mahasiswa',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0F172A),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0F2FE),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'NIM: 362458302000',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF0369A1),
+                // Nama
+                Text(
+                  nama,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: _warnaTeks,
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 6),
 
-              // Kartu informasi akademik
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: Column(
-                    children: [
-                      _ProfileInfoRow(
-                        icon: Icons.domain_rounded,
-                        label: 'Jurusan / Kampus',
-                        value: 'Bisnis & Informatika — Poliwangi',
-                      ),
-                      Divider(height: 24),
-                      _ProfileInfoRow(
-                        icon: Icons.code_rounded,
-                        label: 'Program Studi',
-                        value: 'Sarjana Terapan TRPL',
-                      ),
-                      Divider(height: 24),
-                      _ProfileInfoRow(
-                        icon: Icons.calendar_month_rounded,
-                        label: 'Semester & Angkatan',
-                        value: 'Semester 5 — Angkatan 2024',
-                      ),
-                    ],
+                // Badge NIM
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDBEAFE),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Tombol verifikasi dengan feedback SnackBar
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Status: Mahasiswa Aktif Poliwangi 2026'),
-                        backgroundColor: Color(0xFF0284C7),
-                        behavior: SnackBarBehavior.floating,
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.verified_user_rounded),
-                  label: const Text('Verifikasi Status Mahasiswa'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0284C7),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                  child: Text(
+                    'NIM: $nim',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1D4ED8),
                     ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+
+                // Kartu informasi
+                Card(
+                  elevation: 2,
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        for (int i = 0; i < daftarInfo.length; i++) ...[
+                          if (i > 0)
+                            const Divider(
+                              height: 24,
+                              color: Color(0xFFF1F5F9),
+                            ),
+                          daftarInfo[i],
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Tombol verifikasi + SnackBar
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Status: Mahasiswa Aktif TRPL — Angkatan 2024',
+                            ),
+                            backgroundColor: _warnaUtama,
+                            behavior: SnackBarBehavior.floating,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                    },
+                    icon: const Icon(Icons.verified_user_rounded),
+                    label: const Text('Verifikasi Status Mahasiswa'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _warnaUtama,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -138,17 +203,17 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-// Widget reusable untuk tiap baris informasi profil
+// Widget reusable untuk tiap baris informasi profil.
 class _ProfileInfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
   const _ProfileInfoRow({
     required this.icon,
     required this.label,
     required this.value,
   });
+
+  final IconData icon;
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
@@ -160,10 +225,10 @@ class _ProfileInfoRow extends StatelessWidget {
             color: const Color(0xFFF0F9FF),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 20, color: const Color(0xFF0284C7)),
+          child: Icon(icon, size: 20, color: _warnaUtama),
         ),
         const SizedBox(width: 14),
-        // Expanded agar teks panjang otomatis wrap ke bawah dan tidak overflow
+        // Expanded: teks panjang wrap ke bawah, tidak overflow.
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,7 +247,7 @@ class _ProfileInfoRow extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0F172A),
+                  color: _warnaTeks,
                 ),
               ),
             ],

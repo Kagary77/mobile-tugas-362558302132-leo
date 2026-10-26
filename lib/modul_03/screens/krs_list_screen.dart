@@ -1,145 +1,220 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../models/krs_course.dart';
-import '../providers/krs_provider.dart';
 
-class KrsListScreen extends ConsumerWidget {
+import '../models/krs_course.dart';
+import '../widgets/krs_course_tile.dart';
+import 'add_krs_screen.dart';
+import 'course_detail_screen.dart';
+
+const int batasSksSemester = 24;
+const int ambangPeringatanSks = 21;
+
+class KrsListScreen extends StatefulWidget {
   const KrsListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final krsList = ref.watch(krsProvider);
-    final totalSks = ref.watch(totalSksProvider);
+  State<KrsListScreen> createState() => _KrsListScreenState();
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Rencana Studi (KRS) TRPL'),
-        backgroundColor: const Color(0xFF0284C7),
-        foregroundColor: Colors.white,
-        centerTitle: true,
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: totalSks >= 21
-                  ? Colors.orange.withValues(alpha: 0.35)
-                  : Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              '$totalSks / 24 SKS',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-            ),
-          ),
-        ],
-      ),
-      body: krsList.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.school_outlined,
-                      size: 64, color: Color(0xFF94A3B8)),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Belum Ada Mata Kuliah Terpilih',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF334155)),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Silakan tambahkan mata kuliah ke kartu rencana studi Anda.',
-                    style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: () => context.push('/modul-03/add'),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Tambah Mata Kuliah'),
-                  ),
-                ],
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: krsList.length,
-              itemBuilder: (context, index) {
-                final course = krsList[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  child: ListTile(
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    leading: CircleAvatar(
-                      backgroundColor: const Color(0xFFE0F2FE),
-                      foregroundColor: const Color(0xFF0284C7),
-                      child: Text('${course.sks}',
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                    title: Text(
-                      course.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text('${course.code} • ${course.lecturer}'),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline,
-                          color: Colors.redAccent),
-                      onPressed: () {
-                        _showDeleteConfirmDialog(context, ref, course);
-                      },
-                    ),
-                    onTap: () {
-                      context.push('/modul-03/detail/${course.code}');
-                    },
-                  ),
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/modul-03/add'),
-        backgroundColor: const Color(0xFF0284C7),
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Tambah MK'),
+class _KrsListScreenState extends State<KrsListScreen> {
+  /// `List<KrsCourse>.of(...)`: list `const` tidak dapat diubah. Tanpa
+  /// penyalinan ini add() dan removeWhere() melempar UnsupportedError.
+  final List<KrsCourse> _courses =
+      List<KrsCourse>.of(KrsCourse.getInitialCourses());
+
+  int get _totalSks =>
+      _courses.fold(0, (jumlah, course) => jumlah + course.sks);
+
+  // Tidak ada nilai yang dikembalikan.
+  void _bukaDetail(KrsCourse course) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => CourseDetailScreen(course: course),
       ),
     );
   }
 
-  void _showDeleteConfirmDialog(
-      BuildContext context, WidgetRef ref, KrsCourse course) {
-    showDialog(
+  // Menerima hasil lewat Navigator.pop.
+  Future<void> _bukaFormTambah() async {
+    final KrsCourse? courseBaru = await Navigator.push<KrsCourse>(
+      context,
+      MaterialPageRoute<KrsCourse>(builder: (_) => const AddKrsScreen()),
+    );
+
+    // Tombol kembali ditekan tanpa menyimpan.
+    if (!mounted || courseBaru == null) return;
+
+    final bool duplikat = _courses.any(
+      (course) => course.code.toUpperCase() == courseBaru.code.toUpperCase(),
+    );
+    if (duplikat) {
+      _tampilkanPesan('Kode ${courseBaru.code} sudah ada di rencana studi.');
+      return;
+    }
+
+    final int totalBaru = _totalSks + courseBaru.sks;
+    if (totalBaru > batasSksSemester) {
+      _tampilkanPesan(
+        'Total SKS akan menjadi $totalBaru, melebihi batas '
+        '$batasSksSemester SKS.',
+      );
+      return;
+    }
+
+    setState(() => _courses.add(courseBaru));
+    _tampilkanPesan('${courseBaru.name} ditambahkan ke rencana studi.');
+  }
+
+  Future<void> _konfirmasiHapus(KrsCourse course) async {
+    // Ambil warna SEBELUM await agar tidak memakai context setelah jeda.
+    final Color errorColor = Theme.of(context).colorScheme.error;
+
+    final bool? dikonfirmasi = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Hapus Mata Kuliah?'),
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Hapus mata kuliah?'),
         content: Text(
-            'Yakin ingin membatalkan pengambilan "${course.name}" (${course.sks} SKS)?'),
+          'Yakin ingin membatalkan pengambilan "${course.name}" '
+          '(${course.sks} SKS)?',
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Batal'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              ref.read(krsProvider.notifier).hapusMataKuliah(course.code);
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Mata kuliah ${course.name} berhasil dihapus.'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
+            style: FilledButton.styleFrom(backgroundColor: errorColor),
+            onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Hapus'),
           ),
         ],
+      ),
+    );
+
+    if (!mounted || dikonfirmasi != true) return;
+
+    setState(() => _courses.removeWhere((item) => item.code == course.code));
+    _tampilkanPesan('${course.name} dihapus dari rencana studi.');
+  }
+
+  void _tampilkanPesan(String teks) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(teks), behavior: SnackBarBehavior.floating),
+      );
+  }
+
+  Widget _buildRingkasan() {
+    final ColorScheme colors = Theme.of(context).colorScheme;
+    final bool hampirPenuh = _totalSks >= ambangPeringatanSks;
+    final Color warna = hampirPenuh ? colors.error : colors.primary;
+
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.school_outlined, color: warna),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Total SKS: $_totalSks / $batasSksSemester',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: warna,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${_courses.length} mata kuliah',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            LinearProgressIndicator(
+              value: (_totalSks / batasSksSemester).clamp(0.0, 1.0).toDouble(),
+              color: warna,
+              minHeight: 6,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            if (hampirPenuh)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'Mendekati batas maksimal $batasSksSemester SKS per semester.',
+                  style: TextStyle(fontSize: 12, color: colors.error),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKosong() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.inbox_outlined, size: 64),
+            SizedBox(height: 16),
+            Text(
+              'Belum ada mata kuliah di rencana studi.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Tekan tombol Tambah untuk mengisi KRS.',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Rencana Studi (KRS)')),
+      body: Column(
+        children: [
+          _buildRingkasan(),
+          Expanded(
+            child: _courses.isEmpty
+                ? _buildKosong()
+                : ListView.builder(
+                    // Ruang bawah agar baris terakhir tidak tertutup FAB.
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 88),
+                    itemCount: _courses.length,
+                    itemBuilder: (context, index) {
+                      final KrsCourse course = _courses[index];
+                      return KrsCourseTile(
+                        course: course,
+                        onTap: () => _bukaDetail(course),
+                        onDelete: () => _konfirmasiHapus(course),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _bukaFormTambah,
+        icon: const Icon(Icons.add),
+        label: const Text('Tambah'),
       ),
     );
   }

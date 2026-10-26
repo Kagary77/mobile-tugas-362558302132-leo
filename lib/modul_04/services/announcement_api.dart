@@ -28,13 +28,13 @@ class AnnouncementApi {
   ];
 
   Future<List<Announcement>> ambilPengumuman() async {
-    // ── Mode simulasi: tidak menyentuh jaringan sama sekali ──────────────
+    // ── Mode simulasi: tidak menyentuh jaringan sama sekali ──
     if (modeSimulasi) {
       await Future<void>.delayed(const Duration(seconds: 1));
       return Announcement.getSampleAnnouncements();
     }
 
-    // ── Mode nyata: satu request HTTP GET ───────────────────────────────
+    // ── Mode nyata: satu request HTTP GET ──
     final http.Response response;
     try {
       response = await _client
@@ -54,24 +54,19 @@ class AnnouncementApi {
       throw Exception('Server merespons dengan status ${response.statusCode}.');
     }
 
-    final Object? decoded;
+    final List<dynamic> baris;
     try {
-      decoded = jsonDecode(response.body);
+      baris = jsonDecode(response.body) as List<dynamic>;
     } on FormatException {
       throw Exception('Respons server bukan JSON yang valid.');
     }
-    if (decoded is! List<dynamic>) {
-      throw Exception('Format respons server tidak sesuai (bukan daftar).');
-    }
-    final List<dynamic> baris = decoded;
 
     return List<Announcement>.generate(
       baris.length,
       (int i) {
         final Map<String, dynamic> mentah = baris[i] as Map<String, dynamic>;
 
-        // jsonplaceholder hanya menyediakan `id`, `title`, dan `body`.
-        // Empat field sisanya kita lengkapi agar model tetap utuh.
+        // jsonplaceholder hanya punya `id`, `title`, `body`; sisanya dilengkapi.
         return Announcement.fromJson(<String, dynamic>{
           'id': mentah['id'],
           'title': mentah['title'],
@@ -86,6 +81,7 @@ class AnnouncementApi {
     );
   }
 
+  /// Hanya menutup klien yang dibuat sendiri, bukan yang disuntikkan test.
   void tutup() {
     if (_milikSendiri) _client.close();
   }

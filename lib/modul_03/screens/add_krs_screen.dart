@@ -1,191 +1,139 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../models/krs_course.dart';
-import '../providers/krs_provider.dart';
 
-class AddKrsScreen extends ConsumerStatefulWidget {
+import '../models/krs_course.dart';
+
+class AddKrsScreen extends StatefulWidget {
   const AddKrsScreen({super.key});
 
   @override
-  ConsumerState<AddKrsScreen> createState() => _AddKrsScreenState();
+  State<AddKrsScreen> createState() => _AddKrsScreenState();
 }
 
-class _AddKrsScreenState extends ConsumerState<AddKrsScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _codeController = TextEditingController();
-  final _nameController = TextEditingController();
-  final _lecturerController = TextEditingController();
-  final _sksController = TextEditingController(text: '3');
-  final _descController = TextEditingController();
+class _AddKrsScreenState extends State<AddKrsScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _codeController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _lecturerController = TextEditingController();
+  final TextEditingController _sksController =
+      TextEditingController(text: '3');
+  final TextEditingController _descriptionController =
+      TextEditingController();
 
   @override
   void dispose() {
+    // Wajib: bebaskan setiap controller agar tidak bocor memori.
     _codeController.dispose();
     _nameController.dispose();
     _lecturerController.dispose();
     _sksController.dispose();
-    _descController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
-  void _simpanMataKuliah() {
-    if (_formKey.currentState?.validate() ?? false) {
-      final newCourse = KrsCourse(
-        code: _codeController.text.trim().toUpperCase(),
-        name: _nameController.text.trim(),
-        lecturer: _lecturerController.text.trim(),
-        sks: int.tryParse(_sksController.text.trim()) ?? 3,
-        description: _descController.text.trim(),
-      );
+  void _simpan() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
-      final success =
-          ref.read(krsProvider.notifier).tambahMataKuliah(newCourse);
+    final KrsCourse courseBaru = KrsCourse(
+      code: _codeController.text.trim().toUpperCase(),
+      name: _nameController.text.trim(),
+      lecturer: _lecturerController.text.trim(),
+      sks: int.tryParse(_sksController.text.trim()) ?? 3,
+      description: _descriptionController.text.trim(),
+    );
 
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Mata kuliah "${newCourse.name}" berhasil ditambahkan ke KRS.'),
-            backgroundColor: const Color(0xFF059669),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        context.pop();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'Gagal: Kode MK sudah terdaftar atau total SKS melebihi 24!'),
-            backgroundColor: Colors.redAccent,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
+    // Form tidak menyimpan; ia mengembalikan objek ke layar pemanggil.
+    Navigator.pop(context, courseBaru);
+  }
+
+  String? _wajibIsi(String? value, String pesan) {
+    if ((value?.trim() ?? '').isEmpty) return pesan;
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tambah Mata Kuliah KRS'),
-        backgroundColor: const Color(0xFF0284C7),
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text('Tambah Mata Kuliah')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. Kode Mata Kuliah
               TextFormField(
                 controller: _codeController,
                 textCapitalization: TextCapitalization.characters,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
-                  labelText: 'Kode Mata Kuliah *',
-                  hintText: 'Contoh: TRPL504',
-                  prefixIcon: Icon(Icons.qr_code),
+                  labelText: 'Kode mata kuliah',
+                  hintText: 'contoh: TRPL506',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Kode mata kuliah wajib diisi';
-                  }
-                  if (value.trim().length < 4) {
+                  final String teks = value?.trim() ?? '';
+                  if (teks.isEmpty) return 'Kode mata kuliah wajib diisi';
+                  if (teks.length < 4) {
                     return 'Kode minimal terdiri dari 4 karakter';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
-
-              // 2. Nama Mata Kuliah
               TextFormField(
                 controller: _nameController,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
-                  labelText: 'Nama Mata Kuliah *',
-                  hintText: 'Contoh: Pemrograman Framework Mobile',
-                  prefixIcon: Icon(Icons.book_outlined),
+                  labelText: 'Nama mata kuliah',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Nama mata kuliah wajib diisi';
-                  }
-                  if (value.trim().length < 5) {
-                    return 'Nama minimal terdiri dari 5 karakter';
-                  }
-                  return null;
-                },
+                validator: (value) =>
+                    _wajibIsi(value, 'Nama mata kuliah wajib diisi'),
               ),
               const SizedBox(height: 16),
-
-              // 3. Dosen Pengampu
               TextFormField(
                 controller: _lecturerController,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
-                  labelText: 'Dosen Pengampu *',
-                  hintText: 'Contoh: Sepyan Purnama Kristanto, M.Kom.',
-                  prefixIcon: Icon(Icons.person_outline),
+                  labelText: 'Dosen pengampu',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Nama dosen wajib diisi';
-                  }
-                  return null;
-                },
+                validator: (value) =>
+                    _wajibIsi(value, 'Nama dosen pengampu wajib diisi'),
               ),
               const SizedBox(height: 16),
-
-              // 4. Bobot SKS
               TextFormField(
                 controller: _sksController,
                 keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
-                  labelText: 'Bobot SKS (1–6) *',
-                  prefixIcon: Icon(Icons.confirmation_number_outlined),
+                  labelText: 'Bobot SKS',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Bobot SKS wajib diisi';
-                  }
-                  final sks = int.tryParse(value.trim());
-                  if (sks == null || sks < 1 || sks > 6) {
-                    return 'SKS harus berupa angka antara 1 sampai 6';
-                  }
+                  final int? sks = int.tryParse(value?.trim() ?? '');
+                  if (sks == null) return 'SKS harus berupa angka';
+                  if (sks < 1 || sks > 6) return 'SKS harus antara 1 dan 6';
                   return null;
                 },
               ),
               const SizedBox(height: 16),
-
-              // 5. Deskripsi Ringkas (Opsional)
               TextFormField(
-                controller: _descController,
+                controller: _descriptionController,
                 maxLines: 3,
                 decoration: const InputDecoration(
-                  labelText: 'Deskripsi / Silabus Ringkas',
-                  prefixIcon: Icon(Icons.notes),
+                  labelText: 'Deskripsi silabus (opsional)',
+                  alignLabelWithHint: true,
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Tombol Simpan
-              FilledButton.icon(
-                onPressed: _simpanMataKuliah,
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF0284C7),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: _simpan,
+                  icon: const Icon(Icons.save_outlined),
+                  label: const Text('Simpan'),
                 ),
-                icon: const Icon(Icons.save),
-                label: const Text('Simpan ke Rencana Studi',
-                    style: TextStyle(fontSize: 16)),
               ),
             ],
           ),

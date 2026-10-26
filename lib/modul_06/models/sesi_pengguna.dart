@@ -36,13 +36,23 @@ class SesiPengguna {
         'kedaluwarsaPada': kedaluwarsaPada,
       };
 
-  /// Sisa masa berlaku — ditampilkan di beranda.
+  /// Sisa masa berlaku, ditampilkan di beranda.
   Duration sisaWaktu(DateTime sekarang) {
     final DateTime? batas = DateTime.tryParse(kedaluwarsaPada);
     if (batas == null) return Duration.zero;
     final Duration sisa = batas.difference(sekarang);
     return sisa.isNegative ? Duration.zero : sisa;
   }
+
+  /// "Sekarang" diterima sebagai parameter agar mudah diuji.
+  bool sudahKedaluwarsa(DateTime sekarang) {
+    final DateTime? batas = DateTime.tryParse(kedaluwarsaPada);
+    if (batas == null) return true; // Tanggal rusak = anggap kedaluwarsa.
+    return !sekarang.isBefore(batas);
+  }
+
+  /// Versi praktis untuk UI.
+  bool get kedaluwarsa => sudahKedaluwarsa(DateTime.now());
 
   SesiPengguna copyWith({
     String? token,
@@ -62,16 +72,19 @@ class SesiPengguna {
     );
   }
 
-  bool sudahKedaluwarsa(DateTime sekarang) {
-    final DateTime? batas = DateTime.tryParse(kedaluwarsaPada);
-    if (batas == null) return true; // Tanggal rusak = anggap kedaluwarsa.
-    return !sekarang.isBefore(batas);
+  /// Label peran yang enak dibaca manusia.
+  static String labelPeran(String peran) {
+    switch (peran) {
+      case 'dosen':
+        return 'Dosen';
+      case 'mahasiswa':
+        return 'Mahasiswa';
+      default:
+        return 'Pengguna';
+    }
   }
 
-  /// Versi praktis untuk dipakai di UI (beranda).
-  bool get kedaluwarsa => sudahKedaluwarsa(DateTime.now());
-
-  /// Sesi contoh — dipakai pengujian dan mode simulasi.
+  /// Sesi contoh untuk pengujian dan mode simulasi.
   static SesiPengguna contoh({
     String token = 'dummy-token-fase-a',
     String email = 'student@trpl.test',
@@ -92,18 +105,7 @@ class SesiPengguna {
   }
 
   @override
-  String toString() => 'SesiPengguna(email: $email, peran: $peran, '
+  String toString() =>
+      'SesiPengguna(email: $email, peran: $peran, '
       'kedaluwarsaPada: $kedaluwarsaPada)';
-
-  /// Label peran yang enak dibaca manusia.
-  static String labelPeran(String peran) {
-    switch (peran) {
-      case 'dosen':
-        return 'Dosen';
-      case 'mahasiswa':
-        return 'Mahasiswa';
-      default:
-        return 'Pengguna';
-    }
-  }
 }

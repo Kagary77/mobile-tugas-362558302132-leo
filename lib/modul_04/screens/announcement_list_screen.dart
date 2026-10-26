@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Sesuaikan path import dengan struktur proyekmu.
 import '../models/announcement.dart';
 import '../services/announcement_api.dart';
 import '../widgets/announcement_card.dart';
@@ -13,17 +12,22 @@ class AnnouncementListScreen extends StatefulWidget {
   final AnnouncementApi? api;
 
   @override
-  State<AnnouncementListScreen> createState() => _AnnouncementListScreenState();
+  State<AnnouncementListScreen> createState() =>
+      _AnnouncementListScreenState();
 }
 
 class _AnnouncementListScreenState extends State<AnnouncementListScreen> {
   static const List<String> _kategori = <String>[
     'Semua',
-    ...AnnouncementApi.daftarKategori,
+    'Akademik',
+    'Beasiswa',
+    'Kegiatan',
+    'Prestasi',
   ];
 
   late final AnnouncementApi _api = widget.api ?? AnnouncementApi();
 
+  // Future disimpan di State, BUKAN dibuat di dalam build().
   late Future<List<Announcement>> _futurePengumuman;
 
   String _kategoriTerpilih = 'Semua';
@@ -31,7 +35,7 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> {
   @override
   void initState() {
     super.initState();
-    _futurePengumuman = _api.ambilPengumuman();
+    _futurePengumuman = _api.ambilPengumuman(); // sekali saja
   }
 
   @override
@@ -40,26 +44,21 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> {
     super.dispose();
   }
 
-  // ── Aksi ──────────────────────────────────────────────────────────
-
-  /// Penggantian Future: buat Future baru, lalu tukar lewat setState
-  /// supaya FutureBuilder membangun ulang dari keadaan LOADING.
   Future<void> _muatUlang() async {
     final Future<List<Announcement>> futureBaru = _api.ambilPengumuman();
     setState(() {
-      _futurePengumuman = futureBaru;
+      _futurePengumuman = futureBaru; // satu-satunya tempat penggantian
     });
 
     try {
       await futureBaru;
     } catch (_) {
       // Error sudah ditangani FutureBuilder lewat `snapshot.hasError`.
-      // Blok catch ini hanya mencegah "unhandled exception" dan memastikan
-      // RefreshIndicator berhenti berputar.
+      // Blok ini mencegah "unhandled exception" dan menghentikan
+      // putaran RefreshIndicator.
     }
   }
 
-  /// Penyaringan kategori: hanya mengubah state, data tidak diambil ulang.
   void _pilihKategori(String kategori) {
     if (kategori == _kategoriTerpilih) return;
     setState(() => _kategoriTerpilih = kategori);
@@ -73,8 +72,6 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> {
       ),
     );
   }
-
-  // ── Build ─────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -97,15 +94,15 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> {
             child: FutureBuilder<List<Announcement>>(
               future: _futurePengumuman,
               builder: (context, snapshot) {
-                // ── Keadaan 1: LOADING ────────────────────────────
+                // Keadaan 1: MEMUAT
                 if (snapshot.connectionState != ConnectionState.done) {
                   return _buildMemuat();
                 }
-                // ── Keadaan 2: ERROR ──────────────────────────────
+                // Keadaan 2: GAGAL
                 if (snapshot.hasError) {
                   return _buildGagal(snapshot.error!);
                 }
-                // ── Keadaan 3 & 4: KOSONG / BERHASIL ──────────────
+                // Keadaan 3 & 4: KOSONG / BERHASIL
                 final List<Announcement> semua =
                     snapshot.data ?? const <Announcement>[];
 
@@ -129,53 +126,58 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> {
     );
   }
 
-  // ── Bagian UI ─────────────────────────────────────────────────────
-
   Widget _buildBarisFilter() {
-    return SizedBox(
-      height: 56,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        itemCount: _kategori.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final String kategori = _kategori[index];
-          return ChoiceChip(
-            label: Text(kategori),
-            selected: kategori == _kategoriTerpilih,
-            onSelected: (_) => _pilihKategori(kategori),
-          );
-        },
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: <Widget>[
+          for (final String kategori in _kategori)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: Text(kategori),
+                selected: _kategoriTerpilih == kategori,
+                onSelected: (_) => _pilihKategori(kategori),
+              ),
+            ),
+        ],
       ),
     );
   }
 
-  /// Keadaan 1: LOADING
   Widget _buildMemuat() {
-    return const Center(child: CircularProgressIndicator());
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text('Memuat pengumuman dari server...'),
+        ],
+      ),
+    );
   }
 
-  /// Keadaan 2: ERROR (dengan tombol coba lagi)
   Widget _buildGagal(Object error) {
+    final String pesan = error.toString().replaceFirst('Exception: ', '');
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const Icon(Icons.error_outline, size: 48),
-            const SizedBox(height: 12),
+            const Icon(Icons.cloud_off_outlined, size: 64),
+            const SizedBox(height: 16),
             const Text(
-              'Gagal memuat pengumuman',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              error.toString().replaceFirst('Exception: ', ''),
+              'Gagal Memuat Pengumuman',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            Text(pesan, textAlign: TextAlign.center),
+            const SizedBox(height: 20),
             FilledButton.icon(
               onPressed: _muatUlang,
               icon: const Icon(Icons.refresh),
@@ -187,37 +189,41 @@ class _AnnouncementListScreenState extends State<AnnouncementListScreen> {
     );
   }
 
-  /// Keadaan 3: KOSONG (pakai ListView agar tarik-untuk-segarkan tetap bisa)
   Widget _buildKosong() {
-    return RefreshIndicator(
-      onRefresh: _muatUlang,
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: <Widget>[
-          const SizedBox(height: 120),
-          const Icon(Icons.inbox_outlined, size: 48),
-          const SizedBox(height: 12),
-          Text(
-            _kategoriTerpilih == 'Semua'
-                ? 'Belum ada pengumuman'
-                : 'Tidak ada pengumuman kategori $_kategoriTerpilih',
-            textAlign: TextAlign.center,
-          ),
-        ],
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Icon(Icons.inbox_outlined, size: 64),
+            const SizedBox(height: 16),
+            Text(
+              'Belum ada pengumuman pada kategori "$_kategoriTerpilih".',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 15),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Coba pilih kategori lain.',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  /// Keadaan 4: BERHASIL
-  Widget _buildDaftar(List<Announcement> daftar) {
+  Widget _buildDaftar(List<Announcement> tampil) {
     return RefreshIndicator(
       onRefresh: _muatUlang,
       child: ListView.builder(
+        // Agar tarik-untuk-segarkan bekerja walau daftar pendek.
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
-        itemCount: daftar.length,
+        itemCount: tampil.length,
         itemBuilder: (context, index) {
-          final Announcement item = daftar[index];
+          final Announcement item = tampil[index];
           return AnnouncementCard(
             announcement: item,
             onTap: () => _bukaDetail(item),

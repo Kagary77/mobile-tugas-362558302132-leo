@@ -1,10 +1,4 @@
 class KrsCourse {
-  final String code;
-  final String name;
-  final String lecturer;
-  final int sks;
-  final String description;
-
   const KrsCourse({
     required this.code,
     required this.name,
@@ -13,6 +7,14 @@ class KrsCourse {
     this.description = '',
   });
 
+  final String code;
+  final String name;
+  final String lecturer;
+  final int sks;
+  final String description;
+
+  // Mengembalikan list `const` (read-only). Salin dengan List.of(...) bila
+  // ingin menambah/menghapus isinya.
   static List<KrsCourse> getInitialCourses() {
     return const [
       KrsCourse(
@@ -21,23 +23,44 @@ class KrsCourse {
         lecturer: 'Sepyan Purnama Kristanto, M.Kom.',
         sks: 3,
         description:
-            'Membangun aplikasi mobile cross-platform modern dengan Flutter dan Riverpod.',
+            'Membangun aplikasi mobile lintas platform dengan Flutter: UI '
+            'deklaratif, navigasi, networking, penyimpanan lokal, dan sesi.',
       ),
       KrsCourse(
         code: 'TRPL502',
-        name: 'Rekayasa Perangkat Lunak Lanjut',
+        name: 'Arsitektur Perangkat Lunak',
         lecturer: 'Tim Dosen TRPL',
         sks: 3,
         description:
-            'Penerapan Clean Architecture, Design Patterns, dan CI/CD pipeline.',
+            'Prinsip desain arsitektur: layered architecture, pola MVVM, '
+            'dan pemisahan tanggung jawab antar komponen.',
       ),
       KrsCourse(
         code: 'TRPL503',
-        name: 'Manajemen Basis Data Terdistribusi',
+        name: 'Manajemen Proyek Agile & DevOps',
         lecturer: 'Tim Dosen TRPL',
         sks: 3,
         description:
-            'Pengelolaan basis data NoSQL dan relasional berskala besar.',
+            'Metodologi Scrum dan Kanban, perencanaan sprint, serta '
+            'otomasi build dan deployment dengan CI/CD.',
+      ),
+      KrsCourse(
+        code: 'TRPL504',
+        name: 'Penjaminan Mutu Perangkat Lunak (QA)',
+        lecturer: 'Tim Dosen TRPL',
+        sks: 2,
+        description:
+            'Strategi pengujian: unit test, widget test, dan pengukuran '
+            'kualitas kode secara berkelanjutan.',
+      ),
+      KrsCourse(
+        code: 'TRPL505',
+        name: 'Interoperabilitas Sistem',
+        lecturer: 'Tim Dosen TRPL',
+        sks: 3,
+        description:
+            'Pertukaran data antar sistem melalui REST API, format JSON, '
+            'dan dokumentasi layanan dengan Swagger.',
       ),
     ];
   }
